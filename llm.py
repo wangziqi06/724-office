@@ -47,6 +47,25 @@ def _get_provider():
     return _config["providers"][default_name]
 
 
+def _is_minimax_provider(provider):
+    """Check if the provider is MiniMax based on api_base URL."""
+    api_base = provider.get("api_base", "")
+    return "minimax" in api_base.lower()
+
+
+def _strip_think_tags(text):
+    """Strip <think>...</think> reasoning tags from model output.
+
+    MiniMax M2.5/M2.7 models may include chain-of-thought reasoning
+    wrapped in <think> tags. These should be removed from user-facing
+    responses while preserving the actual content.
+    """
+    if not text or "<think>" not in text:
+        return text
+    import re
+    return re.sub(r"<think>[\s\S]*?</think>\s*", "", text).strip()
+
+
 def _call_llm(messages, tool_defs):
     provider = _get_provider()
     url = provider["api_base"].rstrip("/") + "/chat/completions"
@@ -57,6 +76,13 @@ def _call_llm(messages, tool_defs):
         "tools": tool_defs,
         "max_tokens": provider.get("max_tokens", 8192),
     }
+
+    # MiniMax temperature: clamp to [0, 1.0] (MiniMax max is 1.0)
+    if _is_minimax_provider(provider):
+        temp = body.get("temperature")
+        if temp is not None and temp > 1.0:
+            body["temperature"] = 1.0
+
     extra = provider.get("extra_body", {})
     body.update(extra)
 
@@ -70,7 +96,7 @@ def _call_llm(messages, tool_defs):
     timeout = provider.get("timeout", 120)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return json.loads(resp.read())
+            result = json.loads(resp.read())
     except urllib.error.HTTPError as e:
         # Read response body for debugging 400/422 errors
         body_text = ""
@@ -80,6 +106,17 @@ def _call_llm(messages, tool_defs):
             pass
         log.error("[llm] HTTP %d: %s" % (e.code, body_text))
         raise
+
+    # Strip think tags from MiniMax M2.5/M2.7 responses
+    if _is_minimax_provider(provider):
+        try:
+            content = result["choices"][0]["message"].get("content", "")
+            if content:
+                result["choices"][0]["message"]["content"] = _strip_think_tags(content)
+        except (KeyError, IndexError):
+            pass
+
+    return result
 
 
 # ============================================================
