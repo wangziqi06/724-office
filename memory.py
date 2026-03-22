@@ -65,6 +65,7 @@ def init(config, llm_config, db_path):
         except Exception:
             # Table doesn't exist, insert seed data to create schema
             import numpy as np
+            dim = embedding_cfg.get("dimension", 1024)
             seed = [{
                 "id": "seed",
                 "fact": "System initialized",
@@ -74,7 +75,7 @@ def init(config, llm_config, db_path):
                 "topic": "system",
                 "session_key": "init",
                 "created_at": time.time(),
-                "vector": np.zeros(1024).tolist(),
+                "vector": np.zeros(dim).tolist(),
             }]
             _table = _db.create_table("memories", seed)
             log.info("[memory] created new table")
@@ -156,7 +157,13 @@ def get_cached_context(session_key):
 
 
 def _embed(texts):
-    """Call embedding API, return list of vectors."""
+    """Call embedding API, return list of vectors.
+
+    Supports two formats:
+    - OpenAI-compatible: {"model": ..., "input": [...], "dimensions": N}
+    - MiniMax embo-01: {"model": "embo-01", "texts": [...], "type": "db"|"query"}
+      (auto-detected when api_base contains 'minimax')
+    """
     if not texts:
         return []
 
@@ -166,11 +173,23 @@ def _embed(texts):
     model = cfg.get("model", "text-embedding-3-small")
     dimension = cfg.get("dimension", 1024)
 
-    body = json.dumps({
-        "model": model,
-        "input": texts,
-        "dimensions": dimension,
-    }).encode("utf-8")
+    is_minimax = "minimax" in api_base.lower()
+
+    if is_minimax:
+        # MiniMax native embedding API (embo-01, 1536 dimensions)
+        embed_type = cfg.get("type", "db")
+        body = json.dumps({
+            "model": model,
+            "texts": texts,
+            "type": embed_type,
+        }).encode("utf-8")
+    else:
+        # OpenAI-compatible embedding API
+        body = json.dumps({
+            "model": model,
+            "input": texts,
+            "dimensions": dimension,
+        }).encode("utf-8")
 
     req = urllib.request.Request(
         api_base.rstrip("/") + "/embeddings",
@@ -184,7 +203,12 @@ def _embed(texts):
     with urllib.request.urlopen(req, timeout=30) as resp:
         data = json.loads(resp.read())
 
-    return [item["embedding"] for item in data["data"]]
+    if is_minimax:
+        # MiniMax returns {"vectors": [[...], [...]]}
+        # On rate limit, vectors may be null
+        return data.get("vectors") or []
+    else:
+        return [item["embedding"] for item in data["data"]]
 
 
 # ============================================================

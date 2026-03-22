@@ -148,6 +148,60 @@ See `config.example.json` for the full configuration structure. Key sections:
 - **asr** -- Speech-to-text API credentials
 - **mcp_servers** -- MCP server connections
 
+### Supported LLM Providers
+
+Any OpenAI-compatible API works out of the box. Tested providers include:
+
+| Provider | api_base | Models |
+|----------|----------|--------|
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o`, `gpt-4o-mini` |
+| [MiniMax](https://www.minimaxi.com/) | `https://api.minimax.io/v1` | `MiniMax-M2.7`, `MiniMax-M2.5` |
+
+#### MiniMax Setup
+
+[MiniMax](https://www.minimaxi.com/) provides high-performance LLM and embedding APIs. To use MiniMax:
+
+1. Get an API key from the [MiniMax platform](https://platform.minimaxi.com/)
+2. Set the default provider to `minimax` in `config.json`:
+
+```json
+{
+  "models": {
+    "default": "minimax",
+    "providers": {
+      "minimax": {
+        "api_base": "https://api.minimax.io/v1",
+        "api_key": "YOUR_MINIMAX_API_KEY",
+        "model": "MiniMax-M2.7",
+        "max_tokens": 8192
+      }
+    }
+  }
+}
+```
+
+For MiniMax embeddings (embo-01, 1536 dimensions), use the native embedding API:
+
+```json
+{
+  "memory": {
+    "enabled": true,
+    "embedding_api": {
+      "api_base": "https://api.minimax.io/v1",
+      "api_key": "YOUR_MINIMAX_API_KEY",
+      "model": "embo-01",
+      "dimension": 1536
+    }
+  }
+}
+```
+
+**Notes:**
+- Temperature is automatically clamped to `[0, 1.0]` for MiniMax (max 1.0 vs OpenAI's 2.0)
+- M2.5/M2.7 reasoning tags (`<think>...</think>`) are automatically stripped from responses
+- MiniMax embo-01 uses a native API format (handled automatically when `api_base` contains `minimax`)
+
 ## Design Principles
 
 1. **Zero framework dependency** -- Every line is visible and debuggable. No magic. No hidden abstractions.
