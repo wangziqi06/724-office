@@ -13,6 +13,12 @@
         "api_key": "YOUR_API_KEY_HERE",
         "model": "gpt-4o",
         "max_tokens": 8192
+      },
+      "minimax": {
+        "api_base": "https://api.minimax.io/v1",
+        "api_key": "YOUR_MINIMAX_API_KEY_HERE",
+        "model": "MiniMax-M2.7",
+        "max_tokens": 8192
       }
     }
   },
@@ -31,7 +37,8 @@
       "api_base": "https://api.openai.com/v1",
       "api_key": "YOUR_EMBEDDING_API_KEY_HERE",
       "model": "text-embedding-3-small",
-      "dimension": 1024
+      "dimension": 1024,
+      "_comment_minimax": "For MiniMax: api_base=https://api.minimax.io/v1, model=embo-01, dimension=1536, type=db"
     },
     "retrieve_top_k": 5,
     "similarity_threshold": 0.92
