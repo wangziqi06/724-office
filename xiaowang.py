@@ -597,6 +597,7 @@ class Handler(BaseHTTPRequestHandler):
 
 def main():
     scheduler.start()
+    messaging.start_gateway(handle_callback)
     log.info(f"[agent] starting on {HOST}:{PORT}")
     log.info(f"[agent] workspace={WORKSPACE}")
     log.info(f"[agent] owners={OWNER_IDS}")
