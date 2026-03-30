@@ -184,7 +184,7 @@ def asr_recognize(audio_path):
     api_key = ASR_CONFIG["api_key"]
     api_secret = ASR_CONFIG["api_secret"]
 
-    url = "ASR_CONFIG.get("ws_url", "wss://asr-api.example.com/v2/asr")"
+    url = ASR_CONFIG.get("ws_url", "wss://asr-api.example.com/v2/asr")
     now = datetime.utcnow()
     date = email.utils.formatdate(timeval=time.mktime(now.timetuple()), usegmt=True)
 
