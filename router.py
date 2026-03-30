@@ -166,7 +166,7 @@ def provision_container(sender_id):
         env_list = list(SHARED_ENV) + [
             f"OWNER_ID={sender_id}",
             "USER_NAME=New User",
-            "MODEL_DEFAULT=deepseek-chat",
+            "MODEL_DEFAULT=minimax-chat",
             "AGENT_DATA=/data",
             "AGENT_CONFIG=/data/config.json",
             "MCP_SERVERS={}",
