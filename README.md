@@ -99,7 +99,15 @@ Layer 3: Retrieval (active recall)
 | MCP | `reload_mcp` |
 
 ## Quick Start
+0. **Prerequisites:**
 
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+uv venv
+source .venv/bin/activate
+```
+   
 1. **Clone and configure:**
 
 ```bash
@@ -112,8 +120,9 @@ cp config.example.json config.json
 2. **Install dependencies:**
 
 ```bash
-pip install croniter lancedb websocket-client
+uv pip install croniter lancedb websocket-client
 # Optional: pilk (for WeChat silk audio decoding)
+uv pip install discord.py
 ```
 
 3. **Set up workspace:**
