@@ -1,0 +1,78 @@
+# Example Docker Compose for multi-tenant agent deployment
+# Each user gets an isolated container with their own workspace, sessions, and memory.
+
+services:
+  router:
+    build: ./router
+    container_name: agent-router
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./router/routing.json:/data/router/routing.json
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.env:/data/env/.env:ro
+    environment:
+      TZ: UTC
+      ROUTING_FILE: /data/router/routing.json
+      DEFAULT_BACKEND: http://agent-default:8080
+      GROUP_CHAT_BACKEND: http://agent-group:8080
+      HOST_DATA_DIR: /data/agent/containers
+      APP_IMAGE: agent-app:latest
+      DOCKER_NETWORK: docker_agent-net
+      ENV_FILE_PATH: /data/env/.env
+      MAX_CONTAINERS: "20"
+      CONTAINER_MEMORY: "256m"
+      PROVISION_TIMEOUT: "45"
+    restart: unless-stopped
+    depends_on:
+      - agent-default
+      - agent-group
+    networks: [agent-net]
+
+  agent-default:
+    build:
+      context: .
+      dockerfile: Dockerfile.example
+    image: agent-app:latest
+    container_name: agent-default
+    env_file: .env
+    environment:
+      TZ: UTC
+      OWNER_ID: "your-owner-id"
+      USER_NAME: "default-user"
+      MODEL_DEFAULT: "deepseek-chat"
+      AGENT_DATA: /data
+      AGENT_CONFIG: /data/config.json
+      MCP_SERVERS: '{"playwright":{"transport":"stdio","command":"npx","args":["-y","@playwright/mcp","--headless"]},"filesystem":{"transport":"stdio","command":"npx","args":["-y","@modelcontextprotocol/server-filesystem","/data/workspace"]}}'
+    volumes:
+      - ./containers/default:/data
+      - ./mcp_servers:/app/mcp_servers:ro
+      - ./pages:/pages
+    restart: unless-stopped
+    networks: [agent-net]
+    mem_limit: 512m
+
+  agent-group:
+    image: agent-app:latest
+    container_name: agent-group
+    env_file: .env
+    environment:
+      TZ: UTC
+      OWNER_ID: "your-bot-id"
+      USER_NAME: "group-assistant"
+      MODEL_DEFAULT: "deepseek-chat"
+      GROUP_CHAT_ENABLED: "true"
+      SKIP_BOOTSTRAP: "true"
+      AGENT_DATA: /data
+      AGENT_CONFIG: /data/config.json
+      MCP_SERVERS: '{"playwright":{"transport":"stdio","command":"npx","args":["-y","@playwright/mcp","--headless"]}}'
+    volumes:
+      - ./containers/group:/data
+      - ./pages:/pages
+    restart: unless-stopped
+    networks: [agent-net]
+    mem_limit: 384m
+
+networks:
+  agent-net:
+    driver: bridge

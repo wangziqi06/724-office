@@ -1,6 +1,7 @@
 {
   "models": {
     "default": "deepseek-chat",
+    "fallback": "deepseek-chat",
     "providers": {
       "deepseek-chat": {
         "api_base": "https://api.deepseek.com/v1",
@@ -19,12 +20,14 @@
   "messaging": {
     "token": "YOUR_MESSAGING_PLATFORM_TOKEN",
     "guid": "YOUR_MESSAGING_PLATFORM_GUID",
-    "api_url": "http://api.messaging-platform.example.com/api/send"
+    "api_url": "https://api.messaging-platform.example.com/api/send",
+    "file_api_url": "https://api.messaging-platform.example.com/api/file"
   },
   "owner_ids": ["YOUR_OWNER_USER_ID"],
   "workspace": "./workspace",
   "port": 8080,
   "debounce_seconds": 3.0,
+  "page_base_url": "https://your-server-ip/p",
   "memory": {
     "enabled": true,
     "embedding_api": {
@@ -48,13 +51,17 @@
     "model": "video-generation-model"
   },
   "tavily_api_key": "YOUR_TAVILY_API_KEY_HERE",
-  "search_api_key": "YOUR_SEARCH_API_KEY_HERE",
+  "bocha_api_key": "YOUR_BOCHA_API_KEY_HERE",
   "mcp_servers": {
-    "example-server": {
+    "playwright": {
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@example/mcp-server"],
-      "env": {}
+      "args": ["-y", "@playwright/mcp", "--headless"]
+    },
+    "filesystem": {
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/data/workspace"]
     }
   }
 }

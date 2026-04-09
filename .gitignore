@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 .env
 workspace-*
+workspace/
 *.log
 sessions/
 memory_db/
@@ -13,3 +14,12 @@ files/
 *.tmp
 *.pcm
 *.tar.gz
+*.silk
+*.amr
+containers/
+pages/
+mcp_servers/
+fonts/
+user_template/
+routing.json
+mirror/

@@ -1,0 +1,30 @@
+FROM python:3.10-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg curl gcc python3-dev file && \
+    rm -rf /var/lib/apt/lists/*
+
+# Node.js for MCP servers (npx)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+    websocket-client pilk croniter lancedb numpy \
+    httpx beautifulsoup4 pydub jieba fpdf2 openpyxl python-pptx
+
+# Optional: Chinese fonts for PDF generation
+# COPY fonts/wqy-zenhei.ttc /usr/share/fonts/truetype/wqy/wqy-zenhei.ttc
+
+WORKDIR /app
+COPY xiaowang.py llm.py tools.py tools_base.py tools_messaging.py \
+     tools_video.py tools_search.py tools_admin.py tools_page.py \
+     tools_mirror.py messaging.py scheduler.py memory.py mcp_client.py \
+     audit.py archive.py nudge.py ./
+COPY entrypoint.sh config_template.json ./
+COPY user_template/ ./user_template/
+RUN chmod +x entrypoint.sh
+
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost:8080/ || exit 1
+ENTRYPOINT ["./entrypoint.sh"]
