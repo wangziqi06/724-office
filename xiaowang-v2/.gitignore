@@ -1,0 +1,19 @@
+# 运行时密钥/数据/产物——绝不进库
+.env
+node_modules/
+*.db
+*.db-wal
+*.db-shm
+*.db.bak.*
+v2.db*
+workspace/
+media/
+*.log
+
+# 保留 .env.example（模板，无密钥）
+!.env.example
+
+# 多租户运行时配置（含 secret/微信 id，绝不进库；*.example 是模板可进库）
+router.config.json
+friend.env
+tenants/

@@ -1,0 +1,10 @@
+{
+  "port": 8080,
+  "callbackPath": "/cb/REPLACE_WITH_PUBLIC_CALLBACK_SECRET",
+  "routes": {
+    "ZIQI_WECHAT_SENDER_ID": "http://127.0.0.1:8081/cb/REPLACE_WITH_ZIQI_BACKEND_SECRET"
+  },
+  "defaultTarget": "http://127.0.0.1:8082/cb/REPLACE_WITH_FRIEND_BACKEND_SECRET",
+  "forwardTimeoutMs": 10000,
+  "_note": "未知 senderId 走 defaultTarget（测试期=朋友实例，方便子淇用第二个账号直接测）。将来多个朋友→每个 senderId 显式映射、defaultTarget 设 null 丢弃陌生人。callbackPath 用现在 e云回调的同一个 secret，这样回调 URL 不用改。"
+}

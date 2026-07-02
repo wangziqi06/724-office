@@ -6,6 +6,10 @@ A production-running AI agent built in **~10,000 lines of pure Python** with **z
 
 Built solo with AI co-development tools. Production 24/7 across multiple users.
 
+## Successor: xiaowang-v2 (Node rewrite, 2026)
+
+The next generation lives in [`xiaowang-v2/`](./xiaowang-v2/): a single Node process + a single WAL SQLite + a hand-written agentic loop, zero framework dependency, running 24/7 over WeCom as a personal agent. Where 7/24 Office grew by adding tools, v2 converges: durable cross-day execution, layered memory with honest forgetting, turn assembly for chat-native input (burst messages / photo-then-caption / voice), and structural instruction-following — the model does fuzzy routing, the harness does the deterministic five (execution feedback, schema locks, state exposure, approval gates, idempotency). Design blueprints and 330+ offline selftest assertions included. Docs are in Chinese.
+
 ## What's New in v2.0
 
 - **Modular tool architecture** -- Split from monolithic `tools.py` into 7 domain modules

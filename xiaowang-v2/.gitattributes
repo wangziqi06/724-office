@@ -1,0 +1,7 @@
+# 这些文件会部署到 Linux 服务器执行——强制 LF。
+# 否则 git checkout（autocrlf）把它们转成 CRLF 后：shell 脚本在 Linux 上 `\r` 报错、
+# systemd unit 解析异常、.mjs 无谓 diff。只钉 Linux 落地文件，不动其它文本。
+*.sh       text eol=lf
+*.mjs      text eol=lf
+*.service  text eol=lf
+deploy/*   text eol=lf

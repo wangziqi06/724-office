@@ -1,0 +1,39 @@
+[Unit]
+# 小王 v2 主进程：agentic worker + HTTP 回调，单进程跑。已切换为主力助理，占端口 8080（e云企微回调）。
+Description=xiaowang v2 - durable agentic worker (node:sqlite, port 8080)
+After=network-online.target
+Wants=network-online.target
+# 防崩溃风暴：5 分钟内最多重启 10 次，超了进 failed 由 watchdog_cron 兜底报警（而非无限狂重启刷爆日志/CPU）。
+# 关键：StartLimit* 必须在 [Unit] 段（systemd v229+）——放 [Service] 段会被静默忽略，崩溃风暴限制等于没配。
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+Type=simple
+# 契约钉死：工作目录 = /opt/xiaowang-v2。沙箱 workspace、相对 db 路径都以此为基准。
+WorkingDirectory=/opt/xiaowang-v2
+# 服务器 node 在 /usr/local/bin/node（与 esm-bot 一致）。
+# Node24 内置 node:sqlite 已 stable，但带上 --experimental-sqlite 在 24 上是 no-op，
+# 保留它是为了万一 node 被降级也不至于直接因缺 flag 而启动失败。
+ExecStart=/usr/local/bin/node --experimental-sqlite /opt/xiaowang-v2/main.mjs
+EnvironmentFile=/opt/xiaowang-v2/.env
+
+# ---- 自愈第一层（契约：自愈靠 systemd，不配 WatchdogSec）----
+# 进程崩了就拉起来，5 秒后重试。
+# 故意【不】设 WatchdogSec：v2 的存活判定走进程外 watchdog_cron（读 heartbeat 表），
+# 不依赖 sd_notify 心跳——避免主进程一次长 LLM tick 卡住就被 systemd 误杀。
+Restart=always
+RestartSec=5
+# （StartLimitIntervalSec/StartLimitBurst 已上移到 [Unit] 段——systemd 要求，放这里会被忽略。）
+
+# 日志直接 append 到文件（与 esm-bot 同套路，便于 tail 排障，不进 journald 海里）。
+StandardOutput=append:/var/log/xiaowang-v2.log
+StandardError=append:/var/log/xiaowang-v2.log
+
+# ---- 轻度加固（2C2G 小机，够用即可，不过度）----
+NoNewPrivileges=true
+# 给点内存上限护栏：OOM 时杀自己而不是拖垮 esm-bot 等邻居进程。
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target

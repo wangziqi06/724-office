@@ -1,0 +1,24 @@
+{
+  "name": "xiaowang-v2",
+  "version": "2.0.0",
+  "private": true,
+  "description": "小王 v2 — durable agentic worker. node:sqlite 内置 + 纯 fetch LLM，零运行时依赖。",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "main.mjs",
+  "scripts": {
+    "start": "node --experimental-sqlite main.mjs",
+    "selftest": "node --experimental-sqlite main.mjs --selftest",
+    "probe": "bash deploy/probe.sh",
+    "probe:local": "bash deploy/probe.sh --local",
+    "watchdog": "node --experimental-sqlite watchdog_cron.mjs"
+  },
+  "dependencies": {
+    "silk-wasm": "^3.7.1"
+  },
+  "optionalDependencies": {
+    "pino": "^9.0.0"
+  }
+}
